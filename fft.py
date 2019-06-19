@@ -103,8 +103,6 @@ for times in range(1): #1:x_axis, 2:x&y_axis
 # print(max(yf_x_float6))
 multiFreqList_x = []
 multiFreqList_y = []
-# print(yf_x_float6[58])
-# print(get_two_float(float(xf_x_float6[58]), 4))
 
 maxMultiFreq = []
 maxAmp = 0
