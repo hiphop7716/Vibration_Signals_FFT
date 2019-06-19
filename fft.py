@@ -15,17 +15,12 @@ np.set_printoptions(threshold=np.inf)  # for print every elements in numpy array
 
 dirPath = r"vibration_data"
 files = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
-# print(files)
 
 with open(dirPath + "\\" + files[0]) as f:
     data = f.read()
 data = data.split('\n')
 
-# fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, sharey=True, figsize=(8, 8))
-# labelled_data = zip(y.transpose(), ('Apple', 'Faceook', 'Google'), ('b', 'g', 'r'))
-
 import matplotlib.font_manager as fm
-# plt.rcParams['font.sans-serif'] = ['Noto Serif CJK TC']
 fontPath = r'C:\ProgramData\Anaconda3\pkgs\matplotlib-3.0.3-py36hc8f65d3_0\Lib\site-packages\matplotlib\mpl-data\fonts\ttf\NotoSansCJKtc-Medium.otf'
 cht_font = fm.FontProperties(fname=fontPath, size=10)
 plt.subplots_adjust(left=None, bottom=0.070, right=None, top=0.950, wspace=None, hspace=0.320)
