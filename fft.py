@@ -74,50 +74,66 @@ for times in range(1): #1:x_axis, 2:x&y_axis
 
         #output the FFT result
         with open("X_axis_FFT" if times + 1 == 1 else "Y_axis_FFT", 'w') as f:
-            for idx in range(2500):
-                f.write("%s,%s\n" % (xf_x_float6[idx], yf_x_float6[idx]))
+            for idx in range(len(xf_x_float6)):
+                f.write("%s\t%s\n" % (xf_x_float6[idx], yf_x_float6[idx]))
+
+#find base order freqency
+oneOrderFreqPos = [] #store base order frequency possible postion
+currencyFreqPos = [] #store currency frequency possible postion
+for i in range(len(xf_x_float6)):
+    if xf_x_float6[i] > 55 and xf_x_float6[i] <= 60:
+        oneOrderFreqPos.append(yf_x_float6[i])
+    if xf_x_float6[i] > 120 and xf_x_float6[i] <= 121:
+        currencyFreqPos.append(yf_x_float6[i])
+    if xf_x_float6[i] > 121:
+        break
+
+print(np.max(oneOrderFreqPos))
+print(np.max(currencyFreqPos))
+
 
 maxMultiFreq = []
-maxAmp = 0
-for i in range(1000, 1200):
-    if yf_x_float6[i] > maxAmp:
-        maxFreq = xf_x_float6[i]
-        maxAmp = yf_x_float6[i]
 
-print(maxFreq, maxAmp)
 
-plt.show()
+# print(maxFreq, maxAmp)
 
-multiFreqList_x = []
-multiFreqList_y = []
-for i in range(1, len(xf_x_float6)-1):
-    if int(xf_x_float6[i]) % int(xf_x_float6[58]) == 0:
-        multiFreqList_x.append(xf_x_float6[i])
-        multiFreqList_y.append(yf_x_float6[i])
+# print(np.max(xf_x_float6[:1200]))
+# print(np.max(yf_x_float6[:1200]))
 
-plt.subplot(313)
-plt.plot(xf_x_float6, yf_x_float6, color='green')
-plt.errorbar(multiFreqList_x, multiFreqList_y, fmt='o', color='red', ecolor='LightSteelBlue', elinewidth=0.5)
-plt.title('倍頻', fontproperties=cht_font)
-for i in range(len(multiFreqList_x)):
-    plt.text(multiFreqList_x[i], multiFreqList_y[i], str(i+1)+'x')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Amplitude (g-value)')
-plt.ylim(-0.1, 0.5)
 
-ticks = time.time()
-mFreqDic = {}
+# multiFreqList_x = []
+# multiFreqList_y = []
+# for i in range(1, len(xf_x_float6)-1):
+#     if int(xf_x_float6[i]) % int(xf_x_float6[58]) == 0:
+#         multiFreqList_x.append(xf_x_float6[i])
+#         multiFreqList_y.append(yf_x_float6[i])
+#
+# plt.subplot(313)
+# plt.plot(xf_x_float6, yf_x_float6, color='green')
+# plt.errorbar(multiFreqList_x, multiFreqList_y, fmt='o', color='red', ecolor='LightSteelBlue', elinewidth=0.5)
+# plt.title('倍頻', fontproperties=cht_font)
+#
 # for i in range(len(multiFreqList_x)):
-mFreqDic["apiKey"] = "tkk821has78dh17"
-mFreqDic["model"] = "6P11"
-mFreqDic["uploadTime"] = ticks
-mFreqDic["freq"] = multiFreqList_x
-mFreqDic["amp"] = multiFreqList_y
-
+#     plt.text(multiFreqList_x[i], multiFreqList_y[i], str(i+1)+'x')
+# plt.xlabel('Frequency (Hz)')
+# plt.ylabel('Amplitude (g-value)')
+# plt.ylim(-0.1, 0.5)
+#
+# ticks = time.time()
+# mFreqDic = {}
+# # for i in range(len(multiFreqList_x)):
+# mFreqDic["apiKey"] = "tkk821has78dh17"
+# mFreqDic["model"] = "6P11"
+# mFreqDic["uploadTime"] = ticks
+# mFreqDic["freq"] = multiFreqList_x
+# mFreqDic["amp"] = multiFreqList_y
+#
 # print(mFreqDic)
+#
+# jsonData = json.dumps(mFreqDic, indent=4, separators=(',', ': '))
+#
+# # test = json.loads(jsonData)
+#
+# print(jsonData)
 
-jsonData = json.dumps(mFreqDic, indent=4, separators=(',', ': '))
-
-# test = json.loads(jsonData)
-
-print(jsonData)
+# plt.show()
