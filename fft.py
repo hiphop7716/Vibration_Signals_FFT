@@ -53,7 +53,7 @@ for times in range(1): #1:x_axis, 2:x&y_axis
 
         x_axis_g_List = [float(row.split()[times + 1]) for row in data if "#" not in row and len(row) != 0]  # the type of t is 'list'
 
-        N = 5000
+        N = 100000
         T = 1.0 / 5000.0
 
         # print(x_axis_g_List)
@@ -67,14 +67,14 @@ for times in range(1): #1:x_axis, 2:x&y_axis
         yf1 = abs(fft(x_axis_g_List)) / ((len(x_axis_g_List) / 2))
         yf2 = yf1[range(int(len(x_axis_g_List) / 2))]  # 由於對稱性，只取一半區間
 
-        # print(len(yf2))
+        print(len(yf2))
         # print(yf2[:500])
 
         yf_x_float6 = []
-        for index in range(len(yf_x_new)):
-            yf_x_float6.append(round(yf_x_new[index], 6))
-        # for index in range(len(yf_x)):
-        #     yf_x_float6.append(round(yf_x[index], 6))
+        # for index in range(len(yf_x_new)):
+        #     yf_x_float6.append(round(yf_x_new[index], 6))
+        for index in range(len(yf2)):
+            yf_x_float6.append(round(yf2[index], 6))
 
         xf_x_float6 = []
         for index in range(len(xf_x)):
@@ -100,9 +100,8 @@ for times in range(1): #1:x_axis, 2:x&y_axis
             for idx in range(2500):
                 f.write("%s,%s\n" % (xf_x_float6[idx], yf_x_float6[idx]))
 
-# print(max(yf_x_float6))
-multiFreqList_x = []
-multiFreqList_y = []
+# multiFreqList_x = []
+# multiFreqList_y = []
 
 maxMultiFreq = []
 maxAmp = 0
