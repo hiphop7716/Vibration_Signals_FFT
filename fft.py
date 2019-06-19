@@ -67,8 +67,8 @@ for times in range(1): #1:x_axis, 2:x&y_axis
         yf1 = abs(fft(x_axis_g_List)) / ((len(x_axis_g_List) / 2))
         yf2 = yf1[range(int(len(x_axis_g_List) / 2))]  # 由於對稱性，只取一半區間
 
-        print(len(yf2))
-        print(yf2[:500])
+        # print(len(yf2))
+        # print(yf2[:500])
 
         yf_x_float6 = []
         for index in range(len(yf_x_new)):
