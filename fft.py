@@ -5,13 +5,10 @@ from scipy.fftpack import fft
 import time
 import json
 
-def get_two_float(f_str, n):
-    f_str = str(f_str)      # f_str = '{}'.format(f_str) 也可以转换为字符串
-    a, b, c = f_str.partition('.')
-    c = (c+"0"*n)[:n]       # 如论传入的函数有几位小数，在字符串后面都添加n为小数0
-    return ".".join([a, c])
+dbg = False #debug flag
+subDBG = False #sub debug flag
 
-np.set_printoptions(threshold=np.inf)  # for print every elements in numpy array
+np.set_printoptions(threshold=np.inf)  #enable for print every elements in numpy array
 
 dirPath = r"vibration_data"
 files = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
@@ -20,7 +17,7 @@ with open(dirPath + "\\" + files[0]) as f:
     data = f.read()
 data = data.split('\n')
 
-import matplotlib.font_manager as fm
+import matplotlib.font_manager as fm #for using external font resource on Plot, below is loading NotoSansCJKtc-Medium.otf font
 fontPath = r'C:\ProgramData\Anaconda3\pkgs\matplotlib-3.0.3-py36hc8f65d3_0\Lib\site-packages\matplotlib\mpl-data\fonts\ttf\NotoSansCJKtc-Medium.otf'
 cht_font = fm.FontProperties(fname=fontPath, size=10)
 plt.subplots_adjust(left=None, bottom=0.070, right=None, top=0.950, wspace=None, hspace=0.320)
@@ -78,62 +75,63 @@ for times in range(1): #1:x_axis, 2:x&y_axis
                 f.write("%s\t%s\n" % (xf_x_float6[idx], yf_x_float6[idx]))
 
 #find base order freqency
-oneOrderFreqPos = [] #store base order frequency possible postion
-currencyFreqPos = [] #store currency frequency possible postion
+currencyFreqDic = {} #store currency frequency possible postion
+orderFreqDic = {} #store orders frequency within 40x Frequency and Amplitude
+
+ordersFreqList = []
+ordersAmpList = []
+
+baseFreq = -1
 for i in range(len(xf_x_float6)):
-    if xf_x_float6[i] > 55 and xf_x_float6[i] <= 60:
-        oneOrderFreqPos.append(yf_x_float6[i])
-    if xf_x_float6[i] > 120 and xf_x_float6[i] <= 121:
-        currencyFreqPos.append(yf_x_float6[i])
-    if xf_x_float6[i] > 121:
-        break
+    if int(xf_x_float6[i]) % int(baseFreq) == 0 and xf_x_float6[i] % int(baseFreq) <= 1 and i != 0 and baseFreq != -1: #找基頻以外的倍頻
+        orderFreqDic[xf_x_float6[i]] = yf_x_float6[i]
+    elif xf_x_float6[i] > 55 and xf_x_float6[i] <= 60:
+        orderFreqDic[xf_x_float6[i]] = yf_x_float6[i]
+        baseFreq = max(orderFreqDic, key=orderFreqDic.get)
+    elif xf_x_float6[i] > 120 and xf_x_float6[i] <= 121:
+        currencyFreqDic[xf_x_float6[i]] = yf_x_float6[i]
+    else:
+        if xf_x_float6[i] > 60 and len(orderFreqDic) != 0:
+            # ordersFreq = max(orderFreqDic, key=orderFreqDic.get)
+            ordersFreqList.append(max(orderFreqDic, key=orderFreqDic.get))
+            ordersAmpList.append(orderFreqDic[max(orderFreqDic, key=orderFreqDic.get)])
+            orderFreqDic = {}
+        elif len(currencyFreqDic) != 0:
+            currencyFreq = max(currencyFreqDic, key=currencyFreqDic.get)
+            # print(currencyFreq)
 
-print(np.max(oneOrderFreqPos))
-print(np.max(currencyFreqPos))
+ordersFreqList = ordersFreqList[:40]
+ordersAmpList = ordersAmpList[0:40]
 
+if dbg == True:
+    print(ordersFreqList, ordersAmpList, sep='\n') #The frequencies of Orders and corresponding amplitudes
 
-maxMultiFreq = []
+plt.subplot(313)
+plt.plot(xf_x_float6, yf_x_float6, color='green')
+plt.errorbar(ordersFreqList, ordersAmpList, fmt='o', color='red', ecolor='LightSteelBlue', elinewidth=0.5)
+plt.title('倍頻', fontproperties=cht_font)
 
+for i in range(len(ordersFreqList)):
+    plt.text(ordersFreqList[i], ordersAmpList[i], str(i+1)+'x')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Amplitude (g-value)')
+plt.ylim(-0.1, 0.5)
 
-# print(maxFreq, maxAmp)
-
-# print(np.max(xf_x_float6[:1200]))
-# print(np.max(yf_x_float6[:1200]))
-
-
-# multiFreqList_x = []
-# multiFreqList_y = []
-# for i in range(1, len(xf_x_float6)-1):
-#     if int(xf_x_float6[i]) % int(xf_x_float6[58]) == 0:
-#         multiFreqList_x.append(xf_x_float6[i])
-#         multiFreqList_y.append(yf_x_float6[i])
-#
-# plt.subplot(313)
-# plt.plot(xf_x_float6, yf_x_float6, color='green')
-# plt.errorbar(multiFreqList_x, multiFreqList_y, fmt='o', color='red', ecolor='LightSteelBlue', elinewidth=0.5)
-# plt.title('倍頻', fontproperties=cht_font)
-#
+ticks = time.time()
+mFreqDic = {}
 # for i in range(len(multiFreqList_x)):
-#     plt.text(multiFreqList_x[i], multiFreqList_y[i], str(i+1)+'x')
-# plt.xlabel('Frequency (Hz)')
-# plt.ylabel('Amplitude (g-value)')
-# plt.ylim(-0.1, 0.5)
-#
-# ticks = time.time()
-# mFreqDic = {}
-# # for i in range(len(multiFreqList_x)):
-# mFreqDic["apiKey"] = "tkk821has78dh17"
-# mFreqDic["model"] = "6P11"
-# mFreqDic["uploadTime"] = ticks
-# mFreqDic["freq"] = multiFreqList_x
-# mFreqDic["amp"] = multiFreqList_y
-#
-# print(mFreqDic)
-#
-# jsonData = json.dumps(mFreqDic, indent=4, separators=(',', ': '))
-#
-# # test = json.loads(jsonData)
-#
-# print(jsonData)
+mFreqDic["apiKey"] = "tkk821has78dh17"
+mFreqDic["model"] = "6P11"
+mFreqDic["uploadTime"] = ticks
+mFreqDic["freq"] = ordersFreqList
+mFreqDic["amp"] = ordersAmpList
+
+print(mFreqDic)
+
+jsonData = json.dumps(mFreqDic, indent=4, separators=(',', ': '))
+
+# test = json.loads(jsonData)
+
+print(jsonData)
 
 # plt.show()
