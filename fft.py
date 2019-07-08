@@ -6,30 +6,44 @@ import time
 import json
 from os import listdir, walk
 from os.path import isfile, isdir, join
-import matplotlib.font_manager as fm  # for using external font resource on Plot, below is loading NotoSansCJKtc-Medium.otf font
+import \
+    matplotlib.font_manager as fm  # for using external font resource on Plot, below is loading NotoSansCJKtc-Medium.otf font
+
 
 def takeClosest(myList, myNumber):
     orderFreq = min(myList, key=lambda x: abs(x - myNumber))
     return orderFreq, myList.index(orderFreq)
 
-def outputOrders2File(xAxis, yAxis, fileName):
-    # with open("X_axis_FFT" if times + 1 == 1 else "Y_axis_FFT", 'w') as f:
-    with open(fileName, 'w') as f:
-        for idx in range(len(xAxis)):
-            f.write("%s\t%s\n" % (xAxis[idx], yAxis[idx]))
 
-# def outputPureOrders2File(yAxis, fileName):
-#     # with open("X_axis_FFT" if times + 1 == 1 else "Y_axis_FFT", 'w') as f:
-#     with open(fileName, 'w') as f:
-#         for idx in range(len(xAxis)):
-#             f.write("%s,%s," % (yAxis[idx]))
+def outputOrders2File(model, fixState, axis, freqList, vibList, fileName, fp):
+    # with open("X_axis_FFT" if times + 1 == 1 else "Y_axis_FFT", 'w') as f:
+    # print(type(fp))
+    # print(vib)
+    pos = ''
+    if '(前' in fileName:
+        pos = 'front'
+    elif '(後' in fileName:
+        pos = 'back'
+
+    if axis == 0:
+        axis = 'x'
+    elif axis == 1:
+        axis = 'y'
+
+    vibCombine = ''
+    for vib in vibList:
+        vibCombine += ',' + str(vib)
+
+    # print(model.lower(), fixState.lower(), axis, pos, fileName, sep='\n')
+    fp.write('%s,%s,%s,%s,%s,%s\n' % (model.lower(), axis, pos, fixState, vibCombine[1:], fileName[:-4]))
+
 
 dbg = False  # debug flag
 subDBG = False  # sub debug flag
 
 np.set_printoptions(threshold=np.inf)  # enable for print every elements in numpy array
 
-dirPath = r"vibration_data"
+dirPath = r'vibration_data'
 # files = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
 
 ### Drawing a vibration of time waveform format ###
@@ -47,24 +61,30 @@ cht_font = fm.FontProperties(fname=fontPath, size=10)
 # plt.ylabel('Amplitude (g-value)')
 
 fileCreateTime = time.time()
-fp = open("ML_Data_" + str(int(fileCreateTime)), "a")
-print(str(int(fileCreateTime)))
+fp = open('ML_Data_' + str(int(fileCreateTime)) + '.csv', 'a', encoding='big5')
+fp.write('model,axis,position,fix_state,order_1,order_2,order_3,order_4,order_5,order_6,order_7,order_8,order_9,order_10,order_11,order_12,order_13,order_14,order_15,order_16,order_17,order_18,order_19,order_20,order_21,order_22,order_23,order_24,order_25,order_26,order_27,order_28,order_29,order_30,order_31,order_32,order_33,order_34,order_35,order_36,order_37,order_38,order_39,order_40\n')
+# print(str(int(fileCreateTime)))
 
 # """
-for root, dirs, files in walk(dirPath): # root:string, dirs&files:list
-    modelLabel, fixedLabel = "", ""
+for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
+    modelLabel, fixedLabel = '', ''
     if len(files) != 0:
-        modelLabel = root[root.find('\\')+1:root.rfind('\\')]
-        fixedLabel = root[root.rfind('\\')+1:]
+        modelLabel = root[root.find('/') + 1:root.rfind('/')]
+        fixLabel = root[root.rfind('/') + 1:]
+        if 'Before' in fixedLabel:
+            fixedLabel = '0'
+        elif 'After' in fixedLabel:
+            fixedLabel = '1'
 
         for idx in range(len(files)):
-            with open(root + "\\" + files[idx]) as f:
+            # print(root + '/' + files[idx])
+            with open(root + '/' + files[idx]) as f:
                 data = f.read()
                 data = data.split('\n')
-            print(data)
+            # print(data)
 
             for axes in range(2):  # 1:x_axis, 2:x&y_axis
-                x_axis_g_List = [float(row.split()[axes + 1]) for row in data if "#" not in row and len(row) != 0]  # the type of t is 'list'
+                x_axis_g_List = [float(row.split()[axes + 1]) for row in data if '#' not in row and len(row) != 0]  # the type of t is 'list'
 
                 N = 100000
                 T = 1.0 / 5000.0
@@ -85,44 +105,48 @@ for root, dirs, files in walk(dirPath): # root:string, dirs&files:list
                 for index in range(len(xf_x)):
                     xf_x_float4.append(round(xf_x[index], 4))
 
-                plt.subplot(312)
-                plt.plot(xf_x_float4, yf_x_float4, label=files[idx] + ("_X axis" if axes + 1 == 1 else "_Y axis"), color='green')
-                plt.title('頻譜 (FFT Spectrum)', fontproperties=cht_font)
-                plt.xlabel("Frenquency (Hz)")
-                plt.ylabel("Amplitude (g-value)")
-                plt.ylim(-0.1, 0.5)
+                # plt.subplot(312)
+                # plt.plot(xf_x_float4, yf_x_float4, label=files[idx] + ("_X axis" if axes + 1 == 1 else "_Y axis"), color='green')
+                # plt.title('頻譜 (FFT Spectrum)', fontproperties=cht_font)
+                # plt.xlabel("Frenquency (Hz)")
+                # plt.ylabel("Amplitude (g-value)")
+                # plt.ylim(-0.1, 0.5)
 
                 # output the FFT result
                 ##################################準備寫檔##############################
-                outputOrders2File(xf_x_float4, yf_x_float4, 'ftt_raw')
+                # outputOrders2File(modelLabel, fixLabel, axes, xf_x_float4, yf_x_float4, files[idx], fp)
 
-                with open("X_axis_FFT" if axes + 1 == 1 else "Y_axis_FFT", 'w') as f:
-                    for idx in range(len(xf_x_float4)):
-                        f.write("%s\t%s\n" % (xf_x_float4[idx], yf_x_float4[idx]))
+                # with open("X_axis_FFT" if axes + 1 == 1 else "Y_axis_FFT", 'w') as f:
+                #     for idx in range(len(xf_x_float4)):
+                #         f.write("%s\t%s\n" % (xf_x_float4[idx], yf_x_float4[idx]))
 
-# find base order freqency
-orderFreqDic = {}  # store orders frequency within 40x Frequency and Amplitude
-baseFreq = -1
+                # find base order freqency
+                orderFreqDic = {}  # store orders frequency within 40x Frequency and Amplitude
+                baseFreq = -1
 
-# Figure out the order frequencies that can be divisible by base frequency
-for i in range(len(xf_x_float4)):
-    if xf_x_float4[i] > 55 and xf_x_float4[i] <= 60:
-        orderFreqDic[xf_x_float4[i]] = yf_x_float4[i]
-baseFreq = max(orderFreqDic, key=orderFreqDic.get)  # find the base frequency
+                # Figure out the order frequencies that can be divisible by base frequency
+                for i in range(len(xf_x_float4)):
+                    if xf_x_float4[i] > 55 and xf_x_float4[i] <= 60:
+                        orderFreqDic[xf_x_float4[i]] = yf_x_float4[i]
+                baseFreq = max(orderFreqDic, key=orderFreqDic.get)  # find the base frequency
 
-ordersFreqList = []
-ordersAmpList = []
-for i in range(1, 41):
-    myNumber = baseFreq * i
-    orderFreq, index = takeClosest(xf_x_float4, myNumber)
-    ordersFreqList.append(orderFreq)
-    ordersAmpList.append(yf_x_float4[index])
+                ordersFreqList = []
+                ordersAmpList = []
+                for i in range(1, 41):
+                    myNumber = baseFreq * i
+                    orderFreq, index = takeClosest(xf_x_float4, myNumber)
+                    ordersFreqList.append(orderFreq)
+                    ordersAmpList.append(yf_x_float4[index])
 
-if dbg == True:
-    print(ordersFreqList, ordersAmpList, sep='\n')  # The frequencies of Orders and corresponding amplitudes
+                if dbg == True:
+                    print(ordersFreqList, ordersAmpList,
+                          sep='\n')  # The frequencies of Orders and corresponding amplitudes
 
-outputOrders2File(ordersFreqList, ordersAmpList, 'fft_orders')
+                outputOrders2File(modelLabel, fixLabel, axes, ordersFreqList, ordersAmpList, files[idx], fp)
 
+fp.close()
+
+"""
 plt.subplot(313)
 plt.plot(xf_x_float4, yf_x_float4, color='green')
 plt.errorbar(ordersFreqList, ordersAmpList, fmt='o', color='red', ecolor='LightSteelBlue', elinewidth=0.5)
@@ -149,4 +173,4 @@ jsonData = json.dumps(mFreqDic, indent=4, separators=(',', ': '))
 
 plt.show()
 
-# """
+"""
