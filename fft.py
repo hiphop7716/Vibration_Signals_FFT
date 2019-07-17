@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft
@@ -16,15 +17,15 @@ def takeClosest(myList, myNumber):
 
 
 def outputOrders2File(model, fixState, axis, freqList, vibList, fileName, fp):
-    # with open("X_axis_FFT" if times + 1 == 1 else "Y_axis_FFT", 'w') as f:
-    # print(type(fp))
-    # print(vib)
     pos = ''
+
+    # Get setup position of sensor
     if '(前' in fileName:
         pos = 'front'
     elif '(後' in fileName:
         pos = 'back'
 
+    # Get axial or radial of sensor
     if axis == 0:
         axis = 'x'
     elif axis == 1:
@@ -34,9 +35,7 @@ def outputOrders2File(model, fixState, axis, freqList, vibList, fileName, fp):
     for vib in vibList:
         vibCombine += ',' + str(vib)
 
-    # print(model.lower(), fixState.lower(), axis, pos, fileName, sep='\n')
-    fp.write('%s,%s,%s,%s,%s,%s\n' % (model.lower(), axis, pos, fixState, vibCombine[1:], fileName[:-4]))
-
+    fp.write('%s,%s,%s,%s,%s,%s\n' % (model.lower(), pos, axis, fixState, vibCombine[1:], fileName[:-4]))
 
 dbg = False  # debug flag
 subDBG = False  # sub debug flag
@@ -44,9 +43,8 @@ subDBG = False  # sub debug flag
 np.set_printoptions(threshold=np.inf)  # enable for print every elements in numpy array
 
 dirPath = r'vibration_data'
-# files = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
 
-### Drawing a vibration of time waveform format ###
+# drawing a vibration of time waveform format
 fontPath = r'C:\ProgramData\Anaconda3\pkgs\matplotlib-3.0.3-py36hc8f65d3_0\Lib\site-packages\matplotlib\mpl-data\fonts\ttf\NotoSansCJKtc-Medium.otf'
 cht_font = fm.FontProperties(fname=fontPath, size=10)
 # plt.subplots_adjust(left=None, bottom=0.070, right=None, top=0.950, wspace=None, hspace=0.320)
@@ -62,89 +60,88 @@ cht_font = fm.FontProperties(fname=fontPath, size=10)
 
 fileCreateTime = time.time()
 fp = open('ML_Data_' + str(int(fileCreateTime)) + '.csv', 'a', encoding='big5')
-fp.write('model,axis,position,fix_state,order_1,order_2,order_3,order_4,order_5,order_6,order_7,order_8,order_9,order_10,order_11,order_12,order_13,order_14,order_15,order_16,order_17,order_18,order_19,order_20,order_21,order_22,order_23,order_24,order_25,order_26,order_27,order_28,order_29,order_30,order_31,order_32,order_33,order_34,order_35,order_36,order_37,order_38,order_39,order_40\n')
-# print(str(int(fileCreateTime)))
+fp.write('model,position,axis,fix_state,order_1,order_2,order_3,order_4,order_5,order_6,order_7,order_8,order_9,order_10,order_11,order_12,order_13,order_14,order_15,order_16,order_17,order_18,order_19,order_20,order_21,order_22,order_23,order_24,order_25,order_26,order_27,order_28,order_29,order_30,order_31,order_32,order_33,order_34,order_35,order_36,order_37,order_38,order_39,order_40\n')
 
-# """
 for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
     modelLabel, fixedLabel = '', ''
+    print(root)
+
     if len(files) != 0:
-        modelLabel = root[root.find('/') + 1:root.rfind('/')]
-        fixLabel = root[root.rfind('/') + 1:]
+        modelLabel = root[root.find('\\') + 1:root.rfind('\\')]
+        fixLabel = root[root.rfind('\\') + 1:]
         if 'Before' in fixedLabel:
             fixedLabel = '0'
         elif 'After' in fixedLabel:
             fixedLabel = '1'
 
         for idx in range(len(files)):
+            # To check avoiding appear .DS_Store files by MacOS
             # print(root + '/' + files[idx])
-            with open(root + '/' + files[idx]) as f:
-                data = f.read()
-                data = data.split('\n')
-            # print(data)
 
-            for axes in range(2):  # 1:x_axis, 2:x&y_axis
-                x_axis_g_List = [float(row.split()[axes + 1]) for row in data if '#' not in row and len(row) != 0]  # the type of t is 'list'
+            if '(2)' in files[idx]:
+                with open(root + '\\' + files[idx]) as f:
+                    data = f.read()
+                    data = data.split('\n')
 
-                N = 100000
-                T = 1.0 / 5000.0
+                # 1:X_Axis, 2:X&Y_Axis
+                for axes in range(2):
+                    x_axis_g_List = [float(row.split()[axes + 1]) for row in data if
+                                     '#' not in row and len(row) != 0]  # the type of t is 'list'
 
-                yf_x = fft(x_axis_g_List)  # include real and image number, need to do abs processing next.
+                    N = 100000
+                    T = 1.0 / 5000.0
 
-                # Just first half of the spectrum, as the second is the negative copy
-                xf_x = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)  # X軸 start = 0, end = 2500, axis = 5000(samples)
+                    # include real and image number, need to do abs processing next.
+                    yf_x = fft(x_axis_g_List)
 
-                yf_x_abs = abs(fft(x_axis_g_List)) / ((len(x_axis_g_List) / 2))
-                yf_x_half = yf_x_abs[range(int(len(x_axis_g_List) / 2))]  # 由於對稱性，只取一半區間
+                    # Just first half of the spectrum, as the second is the negative copy
+                    xf_x = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)  # X軸 start = 0, end = 2500, axis = 5000(samples)
 
-                yf_x_float4 = []
-                for index in range(len(yf_x_half)):
-                    yf_x_float4.append(round(yf_x_half[index], 4))
+                    yf_x_abs = abs(fft(x_axis_g_List)) / ((len(x_axis_g_List) / 2))
+                    yf_x_half = yf_x_abs[range(int(len(x_axis_g_List) / 2))]  # 由於對稱性，只取一半區間
 
-                xf_x_float4 = []
-                for index in range(len(xf_x)):
-                    xf_x_float4.append(round(xf_x[index], 4))
+                    yf_x_float4 = []
+                    for index in range(len(yf_x_half)):
+                        yf_x_float4.append(round(yf_x_half[index], 4))
 
-                # plt.subplot(312)
-                # plt.plot(xf_x_float4, yf_x_float4, label=files[idx] + ("_X axis" if axes + 1 == 1 else "_Y axis"), color='green')
-                # plt.title('頻譜 (FFT Spectrum)', fontproperties=cht_font)
-                # plt.xlabel("Frenquency (Hz)")
-                # plt.ylabel("Amplitude (g-value)")
-                # plt.ylim(-0.1, 0.5)
+                    xf_x_float4 = []
+                    for index in range(len(xf_x)):
+                        xf_x_float4.append(round(xf_x[index], 4))
 
-                # output the FFT result
-                ##################################準備寫檔##############################
-                # outputOrders2File(modelLabel, fixLabel, axes, xf_x_float4, yf_x_float4, files[idx], fp)
+                    # plt.subplot(312)
+                    # plt.plot(xf_x_float4, yf_x_float4, label=files[idx] + ("_X axis" if axes + 1 == 1 else "_Y axis"), color='green')
+                    # plt.title('頻譜 (FFT Spectrum)', fontproperties=cht_font)
+                    # plt.xlabel("Frenquency (Hz)")
+                    # plt.ylabel("Amplitude (g-value)")
+                    # plt.ylim(-0.1, 0.5)
 
-                # with open("X_axis_FFT" if axes + 1 == 1 else "Y_axis_FFT", 'w') as f:
-                #     for idx in range(len(xf_x_float4)):
-                #         f.write("%s\t%s\n" % (xf_x_float4[idx], yf_x_float4[idx]))
+                    # find base order freqency
+                    # store filtered orders frequency within 40x Frequency and Amplitude
+                    orderFreqDic = {}
+                    baseFreq = -1
 
-                # find base order freqency
-                orderFreqDic = {}  # store orders frequency within 40x Frequency and Amplitude
-                baseFreq = -1
+                    # Figure out the order frequencies that can be divisible by base frequency
+                    for i in range(len(xf_x_float4)):
+                        if xf_x_float4[i] > 55 and xf_x_float4[i] <= 60:
+                            orderFreqDic[xf_x_float4[i]] = yf_x_float4[i]
+                    baseFreq = max(orderFreqDic, key=orderFreqDic.get)  # find the base frequency
 
-                # Figure out the order frequencies that can be divisible by base frequency
-                for i in range(len(xf_x_float4)):
-                    if xf_x_float4[i] > 55 and xf_x_float4[i] <= 60:
-                        orderFreqDic[xf_x_float4[i]] = yf_x_float4[i]
-                baseFreq = max(orderFreqDic, key=orderFreqDic.get)  # find the base frequency
+                    ordersFreqList = []
+                    ordersAmpList = []
+                    for i in range(1, 41):
+                        myNumber = baseFreq * i
+                        orderFreq, index = takeClosest(xf_x_float4, myNumber)
+                        ordersFreqList.append(orderFreq)
+                        ordersAmpList.append(yf_x_float4[index])
 
-                ordersFreqList = []
-                ordersAmpList = []
-                for i in range(1, 41):
-                    myNumber = baseFreq * i
-                    orderFreq, index = takeClosest(xf_x_float4, myNumber)
-                    ordersFreqList.append(orderFreq)
-                    ordersAmpList.append(yf_x_float4[index])
+                    if dbg == True:
+                        # The frequencies of Orders and corresponding amplitudes
+                        print(ordersFreqList, ordersAmpList, sep='\n')
 
-                if dbg == True:
-                    print(ordersFreqList, ordersAmpList,
-                          sep='\n')  # The frequencies of Orders and corresponding amplitudes
-
-                outputOrders2File(modelLabel, fixLabel, axes, ordersFreqList, ordersAmpList, files[idx], fp)
-
+                    # output the FFT result
+                    outputOrders2File(modelLabel, fixLabel, axes, ordersFreqList, ordersAmpList, files[idx], fp)
 fp.close()
+
 
 """
 plt.subplot(313)
