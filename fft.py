@@ -10,7 +10,6 @@ from os.path import isfile, isdir, join
 import \
     matplotlib.font_manager as fm  # for using external font resource on Plot, below is loading NotoSansCJKtc-Medium.otf font
 
-
 def takeClosest(myList, myNumber):
     orderFreq = min(myList, key=lambda x: abs(x - myNumber))
     return orderFreq, myList.index(orderFreq)
@@ -30,6 +29,10 @@ def outputOrders2File(model, fixState, axis, freqList, vibList, fileName, fp):
         axis = 'x'
     elif axis == 1:
         axis = 'y'
+
+    freqCombine = ''
+    for freq in freqList:
+        freqCombine += ',' + str(freq)
 
     vibCombine = ''
     for vib in vibList:
@@ -59,7 +62,7 @@ cht_font = fm.FontProperties(fname=fontPath, size=10)
 # plt.ylabel('Amplitude (g-value)')
 
 fileCreateTime = time.time()
-fp = open('ML_Data_' + str(int(fileCreateTime)) + '.csv', 'a', encoding='big5')
+fp = open('ML_Data_' + str(int(fileCreateTime)) + '.csv', 'a', encoding='utf-8')
 fp.write('model,position,axis,fix_state,order_1,order_2,order_3,order_4,order_5,order_6,order_7,order_8,order_9,order_10,order_11,order_12,order_13,order_14,order_15,order_16,order_17,order_18,order_19,order_20,order_21,order_22,order_23,order_24,order_25,order_26,order_27,order_28,order_29,order_30,order_31,order_32,order_33,order_34,order_35,order_36,order_37,order_38,order_39,order_40\n')
 
 for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
@@ -135,11 +138,12 @@ for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
                         ordersAmpList.append(yf_x_float4[index])
 
                     if dbg == True:
-                        # The frequencies of Orders and corresponding amplitudes
+                        # The frequency of orders and corresponding amplitudes
                         print(ordersFreqList, ordersAmpList, sep='\n')
 
                     # output the FFT result
-                    outputOrders2File(modelLabel, fixLabel, axes, ordersFreqList, ordersAmpList, files[idx], fp)
+                    # outputOrders2File(modelLabel, fixLabel, axes, ordersFreqList, ordersAmpList, files[idx], fp)
+                    outputOrders2File(modelLabel, fixLabel, axes, xf_x_float4, yf_x_float4, files[idx], fp)
 fp.close()
 
 
