@@ -1,4 +1,5 @@
 import sys
+from io import StringIO
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft
@@ -9,29 +10,28 @@ from os import listdir, walk
 from os.path import isfile, isdir, join
 import \
     matplotlib.font_manager as fm  # for using external font resource on Plot, below is loading NotoSansCJKtc-Medium.otf font
+import pandas as pd
 
+# class fftData:
+#     def __init__(self, group, participants):
 
 def takeClosest(myList, myNumber):
     orderFreq = min(myList, key=lambda x: abs(x - myNumber))
     return orderFreq, myList.index(orderFreq)
 
-def outputOrders2File(freqList, fileName, fp):
-    pos = ''
 
+def outputOrders2File(freqList, fileName, fp):
     freqCombine = ''
     for freq in freqList:
         freqCombine += ',' + str(freq)
-
-    # fp.write('%s,%s,%s,%s,%s,%s\n' % (model.lower(), pos, axis, fixState, vibCombine[1:], fileName[:-4]))
     fp.write('%s\n' % (freqCombine[1:]))
-
 
 dbg = False  # debug flag
 subDBG = False  # sub debug flag
 
 np.set_printoptions(threshold=np.inf)  # enable for print every elements in numpy array
 
-dirPath = r'vibration_data'
+dirPath = r'vibration_data/A'
 
 # drawing a vibration of time waveform format
 fontPath = r'C:\ProgramData\Anaconda3\pkgs\matplotlib-3.0.3-py36hc8f65d3_0\Lib\site-packages\matplotlib\mpl-data\fonts\ttf\NotoSansCJKtc-Medium.otf'
@@ -54,20 +54,23 @@ fp = open('ML_Data_' + str(int(fileCreateTime)) + '.csv', 'a', encoding='utf-8')
 for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
     modelLabel, fixedLabel = '', ''
     # print(root)
+    # print(dirs)
+    # print(files)
 
     if len(files) != 0:
         modelLabel = root[root.find('/') + 1:root.rfind('/')]
-        fixLabel = root[root.rfind('/') + 1:]
-        if 'Before' in fixedLabel:
-            fixedLabel = '0'
-        elif 'After' in fixedLabel:
-            fixedLabel = '1'
+        # fixLabel = root[root.rfind('/') + 1:]
+
+        print(modelLabel)
 
         for idx in range(len(files)):
             # To check avoiding appear .DS_Store files by MacOS
             # print(root + '/' + files[idx])
 
-            if '(2)' in files[idx]:
+            print(files[idx])
+            print(root)
+
+            if '_2' in files[idx] or '_3' in files[idx]:
                 with open(root + '/' + files[idx]) as f:
                     data = f.read()
                     data = data.split('\n')
@@ -104,11 +107,12 @@ for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
 
                     # find base order freqency
                     # store filtered orders frequency within 40x Frequency and Amplitude
-                    orderFreqDic = {}
-                    baseFreq = -1
+                    # orderFreqDic = {}
+                    # baseFreq = -1
 
                     # output the FFT result
                     # outputOrders2File(modelLabel, fixLabel, axes, ordersFreqList, ordersAmpList, files[idx], fp)
+
                 outputOrders2File(xf_x_float4, files[idx], fp)
 fp.close()
 
