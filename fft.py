@@ -12,6 +12,8 @@ import \
     matplotlib.font_manager as fm  # for using external font resource on Plot, below is loading NotoSansCJKtc-Medium.otf font
 import pandas as pd
 import math
+from sklearn import preprocessing
+
 
 # design not yet
 # class fftData:
@@ -44,7 +46,7 @@ fp = open('ML_Data_' + str(int(fileCreateTime)) + '.csv', 'a', encoding='utf-8')
 # fp.write('2P-1_B_F_3,2P-1_B_F_2,2P-1_A_F_3,2P-1_A_E_2,2P-1_B_E_3,2P-1_B_E_2,2P-1_A_E_3\n')
 
 headerString = ''
-for i in range(1, 100001):
+for i in range(1, 41):
     headerString += ',' + str(i)
 
 fp.write('fileName,' + headerString[1:] + '\n')
@@ -92,21 +94,38 @@ for root, dirs, files in walk(dirPath):  # root:string, dirs&files:list
                 # for index in range(len(xf_x)):
                 #     xf_x_float4.append(round(xf_x[index], 4))
 
-                # combine X&Y axis into a list
+                yf_x_float4 = []
                 for index in range(len(yf_x_half)):
-                    xf_x_float4.append(round(yf_x_half[index], 4)*1000)
+                    yf_x_float4.append(round(yf_x_half[index], 4))
 
-                #     if index == 0:
-                #         yf_x_half[index] = 0
-                #     else:
-                #         # weightValue = int(round(yf_x_half[index] * 1000))
-                #         if yf_x_half[index] != 0:
-                #             weightValue = int(round(math.log(yf_x_half[index] * 10000, 2)))
-                #
-                #         # xf_x_float4.append(int(round(yf_x_half[index]*1000)))
-                #         xf_x_float4.append(weightValue)
+                xf_x_float4 = []
+                for index in range(len(xf_x)):
+                    xf_x_float4.append(round(xf_x[index], 4))
+
+                orderFreqDic = {}
+                baseFreq = -1
+                # Figure out the order frequencies that can be divisible by base frequency
+                for i in range(len(xf_x_float4)):
+                    if xf_x_float4[i] > 55 and xf_x_float4[i] <= 60:
+                        orderFreqDic[xf_x_float4[i]] = yf_x_float4[i]
+                baseFreq = max(orderFreqDic, key=orderFreqDic.get)  # find the base frequency
+
+                ordersFreqList = []
+                ordersAmpList = []
+                for i in range(1, 41):
+                    myNumber = baseFreq * i
+                    orderFreq, index = takeClosest(xf_x_float4, myNumber)
+                    ordersFreqList.append(orderFreq)
+                    ordersAmpList.append(yf_x_float4[index])
+
+                test = np.asarray(ordersAmpList)
+                # x = test.reshape(-1, 1)
+                # normalizer = preprocessing.Normalizer().fit(x)
+                x_scaled = preprocessing.scale(test)
+                # print(x_scaled)
+
 
             # print("filename: %s, count of less than 0.001: %d\n"%(files[idx], sum(i < 0.001 for i in xf_x_float4)))
-            outputOrders2File(xf_x_float4, files[idx], fp)
+            outputOrders2File(x_scaled, files[idx], fp)
 
 fp.close()
